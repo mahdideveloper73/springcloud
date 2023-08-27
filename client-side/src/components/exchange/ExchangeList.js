@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Button, ButtonGroup, Container, Table } from 'reactstrap';
-// import AppNavbar from './AppNavbar';
+import AppNavbar from '../../AppNavbar';
 import { Link } from 'react-router-dom';
 
 class ExchangeList extends Component {
@@ -8,50 +8,60 @@ class ExchangeList extends Component {
     constructor(props) {
         super(props);
         this.state = {exchanges: []};
+        this.remove = this.remove.bind(this);
     }
 
     componentDidMount() {
-        fetch('/currency-exchange')
+        debugger
+        fetch('/exchanges')
             .then(response => response.json())
             .then(data => this.setState({exchanges: data}));
     }
 
-
-
-
+    async remove(id) {
+        debugger
+        await fetch(`/exchanges/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }).then(() => {
+            let updatedexchanges = [...this.state.exchanges].filter(i => i.id !== id);
+            this.setState({exchanges: updatedexchanges});
+        });
+    }
 
     render() {
-        const {exchanges, isLoading} = this.state;
+        debugger
+        const {exchanges} = this.state;
 
-        if (isLoading) {
-            return <p>Loading...</p>;
-        }
-
-        const exchangeList = exchanges.map(exchnage => {
-            return <tr key={exchnage.id}>
-                <td style={{whiteSpace: 'nowrap'}}>{exchnage.from}</td>
-                <td>{exchnage.to}</td>
-                <td>{exchnage.conversionMultiple}</td>
-                <td>{exchnage.environment}</td>
+        const exchangeList = exchanges.map(exchange => {
+            return <tr key={exchange.id}>
+                <td style={{whiteSpace: 'nowrap'}}>{exchange.from}</td>
+                <td>{exchange.to}</td>
+                <td>
+                    <ButtonGroup>
+                        <Button size="sm" color="primary" tag={Link} to={"/exchanges/" + exchange.id}>ویرایش</Button>
+                        <Button size="sm" color="danger" onClick={() => this.remove(exchange.id)}>حذف</Button>
+                    </ButtonGroup>
+                </td>
             </tr>
         });
 
         return (
             <div>
-                {/*<AppNavbar/>*/}
+                <AppNavbar/>
                 <Container fluid>
-                    {/*<div className="float-right">*/}
-                    {/*    <Button color="success" tag={Link} to="/clients/new">Add Client</Button>*/}
-                    {/*</div>*/}
-                    <h3>exchnages</h3>
+                    <div className="float-right">
+                        <Button color="success" tag={Link} to="/exchanges/new">افزودن نرخ ارزی</Button>
+                    </div>
+
                     <Table className="mt-4">
                         <thead>
                         <tr>
-                            <th width="20%">id</th>
-                            <th width="20%">From</th>
-                            <th width="20%">To</th>
-                            <th width="20%">ConversionMultiple</th>
-                            <th width="20%">Environment</th>
+                            <th width="30%">از</th>
+                            <th width="30%">به</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -62,9 +72,6 @@ class ExchangeList extends Component {
             </div>
         );
     }
-
-
-
-
 }
+
 export default ExchangeList;

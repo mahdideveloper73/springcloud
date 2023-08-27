@@ -4,11 +4,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 @RestController
+@RequestMapping("/exchanges")
 public class CurrencyExchangeController {
 
     private Logger logger = LoggerFactory.getLogger(CurrencyExchangeController.class);
@@ -16,52 +20,36 @@ public class CurrencyExchangeController {
     @Autowired
     private CurrencyExchangeRepository repository;
 
-    @Autowired
-    private Environment environment;
-
-    @GetMapping("/currency-exchange/from/{from}/to/{to}")
-    public CurrencyExchange retrieveExchangeValue(
-            @PathVariable String from,
-            @PathVariable String to) {
-
-        logger.info("retrieveExchangeValue called with {} to {}", from, to);
-
-        CurrencyExchange currencyExchange
-                = repository.findByFromAndTo(from, to);
-
-        if (currencyExchange == null) {
-            throw new RuntimeException
-                    ("Unable to Find data for " + from + " to " + to);
-        }
-
-        String port = environment.getProperty("local.server.port");
-        currencyExchange.setEnvironment(port);
-
-        return currencyExchange;
-
+    @GetMapping
+    public List<CurrencyExchange> getExchanges() {
+        return repository.findAll();
     }
 
-    @GetMapping("/currency-exchange")
-    public List<CurrencyExchange> retrieveAllExchangeValue() {
-
-        logger.info("retrieveAllExchangeValue called ");
-
-        List<CurrencyExchange> currencyExchangeList
-                = repository.findAll();
-
-        if (currencyExchangeList.isEmpty()) {
-            throw new RuntimeException
-                    ("Unable to Find data ");
-        }
-        return currencyExchangeList;
-
+    @GetMapping("/{id}")
+    public CurrencyExchange getExchanges(@PathVariable Long id) {
+        return repository.findById(id).orElseThrow(RuntimeException::new);
     }
 
-    @PostMapping("/currency-exchange/insert")
-    public CurrencyExchange addCurrencyExchange(@RequestBody CurrencyExchange newCurrencyExchange) {
-        logger.info("addCurrencyExchange called ");
-        repository.save(newCurrencyExchange);
-        return newCurrencyExchange;
+    @PostMapping
+    public ResponseEntity createExchange(@RequestBody CurrencyExchange client) throws URISyntaxException {
+        CurrencyExchange savedClient = repository.save(client);
+        return ResponseEntity.created(new URI("/exchanges/" + savedClient.getId())).body(savedClient);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity updateExchange(@PathVariable Long id, @RequestBody CurrencyExchange exchange) {
+        CurrencyExchange currentClient = repository.findById(id).orElseThrow(RuntimeException::new);
+        currentClient.setFrom(exchange.getFrom());
+        currentClient.setTo(exchange.getTo());
+        currentClient = repository.save(currentClient);
+
+        return ResponseEntity.ok(currentClient);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteExchange(@PathVariable Long id) {
+        repository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 
 }
