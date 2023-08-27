@@ -31,6 +31,8 @@ class ExchangeList extends Component {
             return <tr key={exchnage.id}>
                 <td style={{whiteSpace: 'nowrap'}}>{exchnage.from}</td>
                 <td>{exchnage.to}</td>
+                <td>{exchnage.conversionMultiple}</td>
+                <td>{exchnage.environment}</td>
             </tr>
         });
 
@@ -45,9 +47,11 @@ class ExchangeList extends Component {
                     <Table className="mt-4">
                         <thead>
                         <tr>
-                            <th width="30%">id</th>
-                            <th width="30%">From</th>
-                            <th width="40%">To</th>
+                            <th width="20%">id</th>
+                            <th width="20%">From</th>
+                            <th width="20%">To</th>
+                            <th width="20%">ConversionMultiple</th>
+                            <th width="20%">Environment</th>
                         </tr>
                         </thead>
                         <tbody>
